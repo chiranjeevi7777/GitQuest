@@ -1,0 +1,221 @@
+@import "tailwindcss";
+@import "@xterm/xterm/css/xterm.css";
+
+/* ═══════════════════════════════════════════════
+   GitQuest Design System — Cyberpunk Terminal
+   ═══════════════════════════════════════════════ */
+
+@theme {
+  --color-void: #0a0a0f;
+  --color-abyss: #0d0d14;
+  --color-deep: #12121c;
+  --color-surface: #1a1a2e;
+  --color-elevated: #222240;
+  --color-border: #2a2a4a;
+  --color-border-bright: #3a3a6a;
+
+  --color-neon-cyan: #00f0ff;
+  --color-neon-cyan-dim: #00a0aa;
+  --color-neon-purple: #b347d9;
+  --color-neon-pink: #ff2d7b;
+  --color-neon-green: #39ff14;
+  --color-neon-yellow: #ffd700;
+  --color-neon-orange: #ff6b35;
+
+  --color-text-primary: #e8e8f0;
+  --color-text-secondary: #8888aa;
+  --color-text-dim: #555577;
+
+  --color-success: #39ff14;
+  --color-error: #ff2d7b;
+  --color-warning: #ffd700;
+  --color-info: #00f0ff;
+
+  --font-display: "Orbitron", monospace;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* ═══ Base ═══ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background: var(--color-void);
+  color: var(--color-text-primary);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ═══ Scrollbar ═══ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neon-cyan-dim);
+}
+
+/* ═══ Selection ═══ */
+::selection {
+  background: color-mix(in srgb, var(--color-neon-cyan) 30%, transparent);
+  color: var(--color-neon-cyan);
+}
+
+/* ═══ Glow Effects ═══ */
+.glow-cyan {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-cyan) 30%, transparent),
+              0 0 30px color-mix(in srgb, var(--color-neon-cyan) 10%, transparent);
+}
+
+.glow-purple {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-purple) 30%, transparent),
+              0 0 30px color-mix(in srgb, var(--color-neon-purple) 10%, transparent);
+}
+
+.glow-green {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-green) 30%, transparent),
+              0 0 30px color-mix(in srgb, var(--color-neon-green) 10%, transparent);
+}
+
+.glow-pink {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-pink) 30%, transparent),
+              0 0 30px color-mix(in srgb, var(--color-neon-pink) 10%, transparent);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 8px color-mix(in srgb, var(--color-neon-cyan) 60%, transparent),
+               0 0 20px color-mix(in srgb, var(--color-neon-cyan) 20%, transparent);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 8px color-mix(in srgb, var(--color-neon-green) 60%, transparent),
+               0 0 20px color-mix(in srgb, var(--color-neon-green) 20%, transparent);
+}
+
+/* ═══ Glass Panels ═══ */
+.glass-panel {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-surface) 80%, transparent),
+    color-mix(in srgb, var(--color-deep) 90%, transparent));
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.glass-panel-bright {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-elevated) 70%, transparent),
+    color-mix(in srgb, var(--color-surface) 80%, transparent));
+  border: 1px solid var(--color-border-bright);
+  border-radius: 12px;
+  backdrop-filter: blur(16px);
+}
+
+/* ═══ Terminal Styling ═══ */
+.terminal-container .xterm {
+  padding: 12px;
+}
+
+.terminal-container .xterm-viewport {
+  background: transparent !important;
+}
+
+/* ═══ Scan Line Effect ═══ */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ═══ Typing Cursor ═══ */
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: "▊";
+  color: var(--color-neon-cyan);
+  animation: blink-cursor 1s step-end infinite;
+}
+
+/* ═══ XP Bar Shimmer ═══ */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.xp-bar-fill {
+  background: linear-gradient(
+    90deg,
+    var(--color-neon-cyan),
+    var(--color-neon-purple),
+    var(--color-neon-cyan)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ═══ Grid Pattern Background ═══ */
+.grid-bg {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 20%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ═══ Floating Particles ═══ */
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-20px) translateX(10px); }
+  50% { transform: translateY(-10px) translateX(-5px); }
+  75% { transform: translateY(-25px) translateX(5px); }
+}
+
+/* ═══ Pulse Ring ═══ */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.pulse-ring::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-neon-cyan);
+  animation: pulse-ring 2s ease-out infinite;
+}
