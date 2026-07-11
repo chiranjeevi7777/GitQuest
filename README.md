@@ -86,3 +86,5 @@ src/
 ## 🤝 Contributing
 
 Contributions are welcome! If you have ideas for new worlds, NPC interactions, or advanced git mechanics, feel free to open an issue or submit a pull request.
+Thank you!!
+
