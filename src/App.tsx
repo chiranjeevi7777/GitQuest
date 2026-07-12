@@ -1,5 +1,5 @@
-import { GameLayout } from './components/layout/GameLayout';
+import { AppRouter } from './app/Router';
 
 export function App() {
-  return <GameLayout />;
+  return <AppRouter />;
 }

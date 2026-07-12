@@ -1,64 +1,52 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import type { Mission } from '@/types';
 import { NPCS } from '@/data/npcs';
 import { ChevronRight, MessageCircle } from 'lucide-react';
+import { useDialogue, useKeyboardShortcuts } from '@/hooks';
 
 interface DialoguePanelProps {
   mission: Mission;
 }
 
 export function DialoguePanel({ mission }: DialoguePanelProps) {
-  const introDialogue = mission.dialogue.filter(d => d.trigger === 'mission_start');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState('');
-  const [isTyping, setIsTyping] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const introDialogue = useMemo(() => {
+    return mission.dialogue.filter((d) => d.trigger === 'mission_start');
+  }, [mission.dialogue]);
 
-  const currentLine = introDialogue[currentIndex];
+  const {
+    currentIndex,
+    currentLine,
+    displayedText,
+    isTyping,
+    isCollapsed,
+    setIsCollapsed,
+    advance,
+    reset,
+  } = useDialogue(introDialogue);
+
   const npc = currentLine ? NPCS[currentLine.npcId] : null;
 
-  // Typing effect
-  useEffect(() => {
-    if (!currentLine) return;
-    setIsTyping(true);
-    setDisplayedText('');
-    let i = 0;
-    const text = currentLine.text;
-    const timer = setInterval(() => {
-      if (i < text.length) {
-        setDisplayedText(text.slice(0, i + 1));
-        i++;
-      } else {
-        setIsTyping(false);
-        clearInterval(timer);
-      }
-    }, 20);
-    return () => clearInterval(timer);
-  }, [currentIndex, currentLine]);
-
-  const handleAdvance = () => {
-    if (isTyping) {
-      // Skip typing animation
-      setDisplayedText(currentLine?.text || '');
-      setIsTyping(false);
-      return;
-    }
-    if (currentIndex < introDialogue.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setIsCollapsed(true);
-    }
-  };
+  // Add global shortcut: Space or Enter key advances dialogue
+  useKeyboardShortcuts(
+    {
+      space: (e) => {
+        e.preventDefault();
+        advance();
+      },
+      enter: (e) => {
+        e.preventDefault();
+        advance();
+      },
+    },
+    [advance]
+  );
 
   if (isCollapsed || !currentLine || !npc) {
     return (
       <motion.button
-        className="mx-4 mt-4 mb-2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-xs text-text-dim hover:text-text-secondary"
-        onClick={() => {
-          setIsCollapsed(false);
-          setCurrentIndex(0);
-        }}
+        className="mx-4 mt-4 mb-2 flex items-center gap-2 px-4 py-2 rounded-xl bg-card border-2 border-border text-xs font-display font-semibold text-ink-muted hover:text-ink-secondary hover:border-sky/30 transition-colors"
+        onClick={reset}
         whileHover={{ scale: 1.02 }}
       >
         <MessageCircle className="w-3.5 h-3.5" />
@@ -74,40 +62,32 @@ export function DialoguePanel({ mission }: DialoguePanelProps) {
       animate={{ y: 0, opacity: 1 }}
     >
       <div
-        className="dialogue-bubble glass-panel-bright p-4 cursor-pointer"
-        onClick={handleAdvance}
+        className="dialogue-bubble adventure-card-elevated p-4 cursor-pointer"
+        onClick={advance}
       >
         <div className="flex items-start gap-3">
-          {/* NPC Avatar */}
           <div
             className="npc-avatar"
             style={{
-              background: `linear-gradient(135deg, ${npc.color}20, ${npc.color}05)`,
-              border: `1px solid ${npc.color}40`,
+              background: `linear-gradient(135deg, ${npc.color}20, ${npc.color}08)`,
+              border: `2px solid ${npc.color}50`,
             }}
           >
             {npc.avatar}
           </div>
-
-          {/* Dialogue */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span
-                className="text-xs font-display font-semibold"
-                style={{ color: npc.color }}
-              >
+              <span className="text-sm font-display font-bold" style={{ color: npc.color }}>
                 {npc.name}
               </span>
-              <span className="text-[10px] font-mono text-text-dim">
-                {npc.role}
-              </span>
+              <span className="text-[11px] font-display text-ink-muted">{npc.role}</span>
             </div>
-            <p className="text-sm text-text-primary leading-relaxed">
+            <p className="text-sm text-ink leading-relaxed">
               {displayedText.split('**').map((part, i) =>
                 i % 2 === 1 ? (
                   <code
                     key={i}
-                    className="px-1.5 py-0.5 rounded bg-neon-cyan/10 text-neon-cyan font-mono text-xs border border-neon-cyan/20"
+                    className="px-1.5 py-0.5 rounded-lg bg-sky-pale text-sky font-mono text-xs border border-sky/20"
                   >
                     {part}
                   </code>
@@ -118,30 +98,26 @@ export function DialoguePanel({ mission }: DialoguePanelProps) {
               {isTyping && <span className="typing-cursor" />}
             </p>
           </div>
-
-          {/* Advance indicator */}
           {!isTyping && (
             <motion.div
               animate={{ x: [0, 4, 0] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-text-dim flex-shrink-0 mt-2"
+              className="text-ink-muted flex-shrink-0 mt-2"
             >
               <ChevronRight className="w-4 h-4" />
             </motion.div>
           )}
         </div>
-
-        {/* Progress dots */}
-        <div className="flex gap-1 justify-center mt-3">
+        <div className="flex gap-1.5 justify-center mt-3">
           {introDialogue.map((_, i) => (
             <div
               key={i}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === currentIndex
-                  ? 'bg-neon-cyan w-4'
+                  ? 'bg-sky w-5'
                   : i < currentIndex
-                    ? 'bg-text-dim'
-                    : 'bg-border'
+                  ? 'bg-ink-faint w-1.5'
+                  : 'bg-border w-1.5'
               }`}
             />
           ))}

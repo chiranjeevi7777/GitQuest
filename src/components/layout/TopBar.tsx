@@ -1,26 +1,32 @@
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
-import { Flame, Zap } from 'lucide-react';
+import { Flame, Sparkles } from 'lucide-react';
+import { getXPProgress } from '@/data/constants';
 
-const XP_PER_LEVEL = [0, 100, 250, 500, 800, 1200, 1800, 2500, 3500, 5000, 7000, 10000];
+import { usePlayerStore } from '@/stores/playerStore';
 
 export function TopBar() {
-  const { player, activeMissionId } = useGameStore();
+  const { player } = usePlayerStore();
+  const { activeMissionId } = useGameStore();
 
-  const currentLevelXP = XP_PER_LEVEL[player.level - 1] || 0;
-  const nextLevelXP = XP_PER_LEVEL[player.level] || XP_PER_LEVEL[XP_PER_LEVEL.length - 1];
-  const progress = ((player.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+  const xp = player?.xp ?? 0;
+  const level = player?.level ?? 1;
+  const username = player?.username ?? 'Developer';
+  const title = player?.title ?? 'Apprentice';
+  const streak = player?.streak ?? 0;
+
+  const { nextLevelXP, progress } = getXPProgress(xp, level);
 
   return (
-    <header className="h-14 bg-abyss border-b border-border flex items-center px-4 gap-4 relative z-10">
+    <header className="h-16 bg-card border-b-2 border-border flex items-center px-5 gap-4 relative z-10 shadow-soft">
       {/* Title */}
       <div className="flex items-center gap-3">
-        <h1 className="font-display text-sm font-bold tracking-wider text-neon-cyan text-glow-cyan">
-          GITQUEST
+        <h1 className="font-display text-lg font-bold tracking-wide text-ink">
+          🗺️ GitQuest
         </h1>
         {activeMissionId && (
-          <span className="text-xs font-mono text-text-dim px-2 py-0.5 rounded-full bg-surface border border-border">
-            MISSION ACTIVE
+          <span className="text-xs font-display font-semibold text-sky px-2.5 py-1 rounded-full bg-sky-pale border border-sky/20">
+            ⚔️ MISSION ACTIVE
           </span>
         )}
       </div>
@@ -28,29 +34,31 @@ export function TopBar() {
       <div className="flex-1" />
 
       {/* Streak */}
-      <motion.div
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border"
-        whileHover={{ scale: 1.02 }}
-      >
-        <Flame className="w-4 h-4 text-neon-orange" />
-        <span className="text-xs font-mono font-semibold text-neon-orange">
-          {player.streak}
-        </span>
-      </motion.div>
+      {streak > 0 && (
+        <motion.div
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ember-pale border-2 border-ember/20"
+          whileHover={{ scale: 1.05 }}
+        >
+          <Flame className="w-4 h-4 text-ember" />
+          <span className="text-xs font-display font-bold text-ember">
+            {streak} day{streak !== 1 ? 's' : ''}
+          </span>
+        </motion.div>
+      )}
 
       {/* XP Bar */}
       <div className="flex items-center gap-3 min-w-[200px]">
-        <Zap className="w-4 h-4 text-neon-cyan flex-shrink-0" />
+        <Sparkles className="w-4 h-4 text-gold flex-shrink-0" />
         <div className="flex-1">
           <div className="flex justify-between mb-0.5">
-            <span className="text-[10px] font-mono text-text-dim">
-              LVL {player.level}
+            <span className="text-[11px] font-display font-semibold text-ink-muted">
+              LVL {level}
             </span>
-            <span className="text-[10px] font-mono text-text-dim">
-              {player.xp} / {nextLevelXP} XP
+            <span className="text-[11px] font-display font-semibold text-sky">
+              {xp} / {nextLevelXP} XP
             </span>
           </div>
-          <div className="h-2 bg-deep rounded-full overflow-hidden border border-border">
+          <div className="h-2.5 bg-parchment-warm rounded-full overflow-hidden border-2 border-border">
             <motion.div
               className="h-full xp-bar-fill rounded-full"
               initial={{ width: 0 }}
@@ -62,13 +70,13 @@ export function TopBar() {
       </div>
 
       {/* Player Info */}
-      <div className="flex items-center gap-2 pl-3 border-l border-border">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-purple to-neon-pink flex items-center justify-center text-sm">
+      <div className="flex items-center gap-2.5 pl-4 border-l-2 border-border">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky to-magic flex items-center justify-center text-sm shadow-soft">
           ⚔️
         </div>
         <div>
-          <div className="text-xs font-semibold text-text-primary">{player.username}</div>
-          <div className="text-[10px] font-mono text-neon-purple">{player.title}</div>
+          <div className="text-sm font-display font-bold text-ink">{username}</div>
+          <div className="text-[11px] font-display font-semibold text-magic">{title}</div>
         </div>
       </div>
     </header>

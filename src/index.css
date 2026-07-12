@@ -1,221 +1,167 @@
 @import "tailwindcss";
-@import "@xterm/xterm/css/xterm.css";
 
 /* ═══════════════════════════════════════════════
-   GitQuest Design System — Cyberpunk Terminal
+   GitQuest Design System — Cartoon Adventure
    ═══════════════════════════════════════════════ */
 
 @theme {
-  --color-void: #0a0a0f;
-  --color-abyss: #0d0d14;
-  --color-deep: #12121c;
-  --color-surface: #1a1a2e;
-  --color-elevated: #222240;
-  --color-border: #2a2a4a;
-  --color-border-bright: #3a3a6a;
+  /* Warm Adventure Palette */
+  --color-parchment: #FBF7F0;
+  --color-parchment-warm: #F5EDE0;
+  --color-cream: #FFF9F0;
+  --color-card: #FFFFFF;
+  --color-card-hover: #F8F5EF;
+  --color-border: #E8E0D4;
+  --color-border-strong: #D4C9B8;
 
-  --color-neon-cyan: #00f0ff;
-  --color-neon-cyan-dim: #00a0aa;
-  --color-neon-purple: #b347d9;
-  --color-neon-pink: #ff2d7b;
-  --color-neon-green: #39ff14;
-  --color-neon-yellow: #ffd700;
-  --color-neon-orange: #ff6b35;
+  /* Adventure Colors */
+  --color-sky: #4A90D9;
+  --color-sky-light: #6BADE8;
+  --color-sky-pale: #E8F2FC;
+  --color-magic: #7C5CBF;
+  --color-magic-light: #9B7ED8;
+  --color-magic-pale: #F0E8FC;
+  --color-gold: #F5A623;
+  --color-gold-light: #FFD166;
+  --color-gold-pale: #FFF5E0;
+  --color-leaf: #5CB85C;
+  --color-leaf-light: #7ED321;
+  --color-leaf-pale: #EAF7EA;
+  --color-coral: #E85D75;
+  --color-coral-light: #FF8A9E;
+  --color-coral-pale: #FDE8EC;
+  --color-ocean: #3CC7D6;
+  --color-ocean-pale: #E5F8FA;
+  --color-ember: #FF7043;
+  --color-ember-pale: #FFF0EB;
 
-  --color-text-primary: #e8e8f0;
-  --color-text-secondary: #8888aa;
-  --color-text-dim: #555577;
+  /* Text */
+  --color-ink: #3D3852;
+  --color-ink-secondary: #6B6580;
+  --color-ink-muted: #9B97A8;
+  --color-ink-faint: #C4C0CE;
 
-  --color-success: #39ff14;
-  --color-error: #ff2d7b;
-  --color-warning: #ffd700;
-  --color-info: #00f0ff;
+  /* Semantic */
+  --color-success: #5CB85C;
+  --color-error: #E85D75;
+  --color-warning: #F5A623;
+  --color-info: #4A90D9;
 
-  --font-display: "Orbitron", monospace;
-  --font-body: "Space Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  /* Fonts */
+  --font-display: "Quicksand", sans-serif;
+  --font-body: "Nunito", sans-serif;
+  --font-mono: "Fira Code", monospace;
 }
 
 /* ═══ Base ═══ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
   font-family: var(--font-body);
-  background: var(--color-void);
-  color: var(--color-text-primary);
+  background: var(--color-parchment);
+  color: var(--color-ink);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-#root {
-  min-height: 100vh;
-  display: flex;
-}
+body { margin: 0; min-height: 100vh; overflow: hidden; }
+#root { min-height: 100vh; display: flex; }
 
 /* ═══ Scrollbar ═══ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-abyss);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neon-cyan-dim);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-parchment-warm); }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-muted); }
 
 /* ═══ Selection ═══ */
-::selection {
-  background: color-mix(in srgb, var(--color-neon-cyan) 30%, transparent);
-  color: var(--color-neon-cyan);
+::selection { background: color-mix(in srgb, var(--color-sky) 25%, transparent); color: var(--color-sky); }
+
+/* ═══ Card Styles ═══ */
+.adventure-card {
+  background: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(61, 56, 82, 0.06), 0 1px 3px rgba(61, 56, 82, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.adventure-card:hover {
+  box-shadow: 0 4px 16px rgba(61, 56, 82, 0.1), 0 2px 6px rgba(61, 56, 82, 0.06);
 }
 
-/* ═══ Glow Effects ═══ */
-.glow-cyan {
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-cyan) 30%, transparent),
-              0 0 30px color-mix(in srgb, var(--color-neon-cyan) 10%, transparent);
+.adventure-card-elevated {
+  background: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(61, 56, 82, 0.08), 0 2px 8px rgba(61, 56, 82, 0.05);
 }
 
-.glow-purple {
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-purple) 30%, transparent),
-              0 0 30px color-mix(in srgb, var(--color-neon-purple) 10%, transparent);
-}
-
-.glow-green {
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-green) 30%, transparent),
-              0 0 30px color-mix(in srgb, var(--color-neon-green) 10%, transparent);
-}
-
-.glow-pink {
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-neon-pink) 30%, transparent),
-              0 0 30px color-mix(in srgb, var(--color-neon-pink) 10%, transparent);
-}
-
-.text-glow-cyan {
-  text-shadow: 0 0 8px color-mix(in srgb, var(--color-neon-cyan) 60%, transparent),
-               0 0 20px color-mix(in srgb, var(--color-neon-cyan) 20%, transparent);
-}
-
-.text-glow-green {
-  text-shadow: 0 0 8px color-mix(in srgb, var(--color-neon-green) 60%, transparent),
-               0 0 20px color-mix(in srgb, var(--color-neon-green) 20%, transparent);
-}
-
-/* ═══ Glass Panels ═══ */
-.glass-panel {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--color-surface) 80%, transparent),
-    color-mix(in srgb, var(--color-deep) 90%, transparent));
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  backdrop-filter: blur(12px);
-}
-
-.glass-panel-bright {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--color-elevated) 70%, transparent),
-    color-mix(in srgb, var(--color-surface) 80%, transparent));
-  border: 1px solid var(--color-border-bright);
-  border-radius: 12px;
-  backdrop-filter: blur(16px);
-}
-
-/* ═══ Terminal Styling ═══ */
-.terminal-container .xterm {
-  padding: 12px;
-}
-
-.terminal-container .xterm-viewport {
-  background: transparent !important;
-}
-
-/* ═══ Scan Line Effect ═══ */
-.scanlines::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 50;
-}
+/* ═══ Soft Shadows ═══ */
+.shadow-soft { box-shadow: 0 2px 8px rgba(61, 56, 82, 0.06); }
+.shadow-medium { box-shadow: 0 4px 16px rgba(61, 56, 82, 0.1); }
+.shadow-large { box-shadow: 0 8px 32px rgba(61, 56, 82, 0.12); }
 
 /* ═══ Typing Cursor ═══ */
-@keyframes blink-cursor {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
+@keyframes blink-cursor { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 .typing-cursor::after {
   content: "▊";
-  color: var(--color-neon-cyan);
+  color: var(--color-sky);
   animation: blink-cursor 1s step-end infinite;
 }
 
-/* ═══ XP Bar Shimmer ═══ */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
+/* ═══ XP Bar Fill ═══ */
+@keyframes xp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .xp-bar-fill {
-  background: linear-gradient(
-    90deg,
-    var(--color-neon-cyan),
-    var(--color-neon-purple),
-    var(--color-neon-cyan)
-  );
+  background: linear-gradient(90deg, var(--color-sky), var(--color-magic), var(--color-sky));
   background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
+  animation: xp-shimmer 3s ease-in-out infinite;
 }
 
-/* ═══ Grid Pattern Background ═══ */
-.grid-bg {
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--color-border) 20%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 20%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
+/* ═══ Subtle Pattern Background ═══ */
+.pattern-dots {
+  background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* ═══ Floating Particles ═══ */
-@keyframes float {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  25% { transform: translateY(-20px) translateX(10px); }
-  50% { transform: translateY(-10px) translateX(-5px); }
-  75% { transform: translateY(-25px) translateX(5px); }
+/* ═══ Floating Animation ═══ */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
+.float-animation { animation: float-gentle 3s ease-in-out infinite; }
 
 /* ═══ Pulse Ring ═══ */
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
+@keyframes pulse-ring-soft {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 
-.pulse-ring::before {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid var(--color-neon-cyan);
-  animation: pulse-ring 2s ease-out infinite;
+/* ═══ Bounce In ═══ */
+@keyframes bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bounce-in { animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* ═══ Wiggle ═══ */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* ═══ Gradient backgrounds for world areas ═══ */
+.bg-village { background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 50%, #FFF9C4 100%); }
+.bg-forest { background: linear-gradient(135deg, #E0F2F1 0%, #C8E6C9 50%, #DCEDC8 100%); }
+.bg-mountain { background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 50%, #E1F5FE 100%); }
+.bg-harbor { background: linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 50%, #E0F2F1 100%); }
+
+/* ═══ Terminal magic scroll ═══ */
+.terminal-scroll {
+  background: linear-gradient(145deg, #2D2B3D, #1E1C2E);
+  border: 2px solid #3D3852;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(30, 28, 46, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
 }

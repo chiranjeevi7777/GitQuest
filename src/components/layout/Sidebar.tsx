@@ -1,74 +1,75 @@
 import { motion } from 'framer-motion';
-import { useGameStore } from '@/stores/gameStore';
-import { Map, Swords, Trophy, Settings, GitBranch } from 'lucide-react';
-import type { GameView } from '@/types';
+import { NavLink, Link } from 'react-router-dom';
+import { usePlayerStore } from '@/stores/playerStore';
+import { Map, Trophy, Settings, GitBranch, Sparkles } from 'lucide-react';
 
-const NAV_ITEMS: { id: GameView; icon: typeof Map; label: string }[] = [
-  { id: 'world-map', icon: Map, label: 'World Map' },
-  { id: 'achievements', icon: Trophy, label: 'Achievements' },
-  { id: 'settings', icon: Settings, label: 'Settings' },
+const NAV_ITEMS = [
+  { path: '/', icon: Map, label: 'World Map', emoji: '🗺️' },
+  { path: '/achievements', icon: Trophy, label: 'Achievements', emoji: '🏆' },
+  { path: '/cards', icon: Sparkles, label: 'Cards', emoji: '✨' },
+  { path: '/settings', icon: Settings, label: 'Settings', emoji: '⚙️' },
 ];
 
 export function Sidebar() {
-  const { currentView, setView, player } = useGameStore();
+  const { player } = usePlayerStore();
 
   return (
-    <aside className="w-[72px] bg-abyss border-r border-border flex flex-col items-center py-4 gap-2 relative z-10">
+    <aside className="w-[76px] bg-card border-r-2 border-border flex flex-col items-center py-4 gap-2 relative z-10 shadow-soft">
       {/* Logo */}
       <motion.div
-        className="mb-4 cursor-pointer"
+        className="mb-3"
         whileHover={{ scale: 1.1, rotate: 5 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setView('world-map')}
       >
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center glow-cyan">
-          <GitBranch className="w-6 h-6 text-void" strokeWidth={2.5} />
-        </div>
+        <Link to="/" className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky to-magic flex items-center justify-center shadow-medium block">
+          <GitBranch className="w-6 h-6 text-white m-auto" strokeWidth={2.5} />
+        </Link>
       </motion.div>
 
-      <div className="w-8 h-px bg-border mb-2" />
+      <div className="w-10 h-0.5 bg-border rounded-full mb-1" />
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-1 flex-1">
+      <nav className="flex flex-col gap-1.5 flex-1">
         {NAV_ITEMS.map(item => {
-          const isActive = currentView === item.id;
           const Icon = item.icon;
           return (
-            <motion.button
-              key={item.id}
-              onClick={() => setView(item.id)}
-              className={`
-                relative w-11 h-11 rounded-xl flex items-center justify-center
-                transition-colors duration-200 group
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => `
+                relative w-12 h-12 rounded-2xl flex items-center justify-center
+                transition-all duration-200 group border-2
                 ${isActive
-                  ? 'bg-elevated text-neon-cyan'
-                  : 'text-text-dim hover:text-text-secondary hover:bg-surface'
+                  ? 'bg-sky-pale text-sky border-sky/30 shadow-soft'
+                  : 'text-ink-muted hover:text-ink-secondary hover:bg-parchment-warm border-transparent'
                 }
               `}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               title={item.label}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-indicator"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-neon-cyan rounded-r-full"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-              <Icon className="w-5 h-5" />
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebar-indicator"
+                      className="absolute -left-[2px] top-1/2 -translate-y-1/2 w-[4px] h-6 bg-sky rounded-r-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <Icon className="w-5 h-5" />
 
-              {/* Tooltip */}
-              <span className="
-                absolute left-full ml-3 px-2 py-1 rounded-md
-                bg-elevated text-text-primary text-xs font-mono
-                opacity-0 group-hover:opacity-100 pointer-events-none
-                transition-opacity whitespace-nowrap z-50
-                border border-border
-              ">
-                {item.label}
-              </span>
-            </motion.button>
+                  {/* Tooltip */}
+                  <span className="
+                    absolute left-full ml-3 px-3 py-1.5 rounded-xl
+                    bg-ink text-white text-xs font-display font-semibold
+                    opacity-0 group-hover:opacity-100 pointer-events-none
+                    transition-opacity whitespace-nowrap z-50
+                    shadow-medium
+                  ">
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
           );
         })}
       </nav>
@@ -76,11 +77,11 @@ export function Sidebar() {
       {/* Player Level Badge */}
       <div className="mt-auto">
         <motion.div
-          className="w-11 h-11 rounded-xl bg-surface border border-border flex items-center justify-center"
-          whileHover={{ scale: 1.05 }}
+          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-pale to-gold/10 border-2 border-gold/30 flex items-center justify-center shadow-soft"
+          whileHover={{ scale: 1.08 }}
           title={`Level ${player.level} — ${player.title}`}
         >
-          <span className="text-sm font-display font-bold text-neon-cyan">
+          <span className="text-base font-display font-bold text-gold">
             {player.level}
           </span>
         </motion.div>

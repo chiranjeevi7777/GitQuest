@@ -1,96 +1,61 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
-import { WORLDS } from '@/data/worlds';
-import { GitEngine } from '@/engine/gitEngine';
 import { GameTerminal } from '../game/GameTerminal';
 import { DialoguePanel } from '../game/DialoguePanel';
 import { ObjectivesPanel } from '../game/ObjectivesPanel';
 import { GitGraphPanel } from '../game/GitGraphPanel';
 import { MissionBriefing } from '../game/MissionBriefing';
-import { ArrowLeft, Lightbulb, GitBranch } from 'lucide-react';
-import type { Mission, MissionObjective } from '@/types';
+import { ArrowLeft, Lightbulb, GitBranch, Map } from 'lucide-react';
+import { useMission, useKeyboardShortcuts } from '@/hooks';
+import { Button } from '../ui';
 
 export function MissionView() {
+  const { missionId } = useParams<{ missionId: string }>();
+  const navigate = useNavigate();
+
   const {
-    activeMissionId, player, showMissionBriefing, closeMissionBriefing,
-    completeMission, setView, addNotification, currentHintIndex, showHint,
+    showMissionBriefing,
+    closeMissionBriefing,
+    currentHintIndex,
+    showHint,
   } = useGameStore();
 
-  // Find current mission
-  const mission = useMemo(() => {
-    for (const world of WORLDS) {
-      const m = world.missions.find(m => m.id === activeMissionId);
-      if (m) return m;
-    }
-    return null;
-  }, [activeMissionId]);
+  const {
+    mission,
+    world,
+    gitEngine,
+    completedObjectives,
+    missionComplete,
+    executeCommand,
+    finishMission,
+  } = useMission(missionId);
 
-  const world = useMemo(
-    () => WORLDS.find(w => w.missions.some(m => m.id === activeMissionId)),
-    [activeMissionId]
-  );
-
-  // Objective tracking
-  const [completedObjectives, setCompletedObjectives] = useState<Set<string>>(new Set());
-  const [missionComplete, setMissionComplete] = useState(false);
-
-  // Git engine
-  const gitEngineRef = useRef<GitEngine | null>(null);
-  if (!gitEngineRef.current) {
-    gitEngineRef.current = new GitEngine();
-  }
-  const gitEngine = gitEngineRef.current;
-
-  // Handle command execution
-  const handleCommand = useCallback((input: string): string => {
-    if (!mission || !gitEngine) return '';
-
-    const result = gitEngine.execute(input);
-
-    // Validate objectives after each command
-    const newCompleted = new Set(completedObjectives);
-    let changed = false;
-
-    for (const objective of mission.objectives) {
-      if (!newCompleted.has(objective.id)) {
-        const valid = gitEngine.validate(
-          objective.validationType,
-          objective.validationParams
-        );
-        if (valid) {
-          newCompleted.add(objective.id);
-          changed = true;
-
-          addNotification({
-            type: 'xp-gain',
-            title: 'Objective Complete!',
-            description: objective.description,
-            icon: '✅',
-          });
+  // Keyboard shortcut: Escape goes back to map, H toggles hint
+  useKeyboardShortcuts(
+    {
+      escape: (e) => {
+        e.preventDefault();
+        if (missionComplete) {
+          finishMission();
+        } else {
+          navigate('/');
         }
-      }
-    }
-
-    if (changed) {
-      setCompletedObjectives(newCompleted);
-
-      // Check if all objectives complete
-      if (mission.objectives.every(o => newCompleted.has(o.id)) && !missionComplete) {
-        setMissionComplete(true);
-        setTimeout(() => {
-          completeMission(mission.id);
-        }, 1500);
-      }
-    }
-
-    return result.output;
-  }, [mission, gitEngine, completedObjectives, missionComplete, completeMission, addNotification]);
+      },
+      h: (e) => {
+        e.preventDefault();
+        if (mission && mission.hints.length > 0) {
+          showHint();
+        }
+      },
+    },
+    [mission, missionComplete, finishMission, showHint, navigate]
+  );
 
   if (!mission || !world) {
     return (
       <div className="h-full flex items-center justify-center">
-        <p className="text-text-dim">No active mission</p>
+        <p className="text-ink-muted font-display">No active mission</p>
       </div>
     );
   }
@@ -105,11 +70,7 @@ export function MissionView() {
       {/* Mission Briefing Overlay */}
       <AnimatePresence>
         {showMissionBriefing && (
-          <MissionBriefing
-            mission={mission}
-            world={world}
-            onStart={closeMissionBriefing}
-          />
+          <MissionBriefing mission={mission} world={world} onStart={closeMissionBriefing} />
         )}
       </AnimatePresence>
 
@@ -117,13 +78,13 @@ export function MissionView() {
       <AnimatePresence>
         {missionComplete && (
           <motion.div
-            className="absolute inset-0 z-50 flex items-center justify-center bg-void/80 backdrop-blur-sm"
+            className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="text-center"
+              className="text-center bg-slate-900 border-2 border-slate-950 rounded-2xl p-10 max-w-sm shadow-[6px_6px_0px_0px_#0f172a]"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 200 }}
@@ -135,59 +96,67 @@ export function MissionView() {
               >
                 🎉
               </motion.div>
-              <h2 className="font-display text-3xl font-bold text-neon-cyan text-glow-cyan mb-2">
+              <h2 className="font-display text-3xl font-bold text-sky mb-2">
                 MISSION COMPLETE!
               </h2>
-              <p className="text-text-secondary font-mono">
+              <p className="text-ink-secondary font-display font-semibold mb-6">
                 +{mission.xpReward} XP
               </p>
+              <Button
+                variant="cartoon"
+                onClick={finishMission}
+                leftIcon={<Map className="w-4 h-4" />}
+                className="mx-auto"
+              >
+                Return to World Map
+              </Button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Mission Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-abyss border-b border-border">
-        <motion.button
-          onClick={() => setView('world-map')}
-          className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center text-text-dim hover:text-text-primary"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+      <div className="flex items-center gap-3 px-4 py-3 bg-card border-b-2 border-border shadow-soft">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="w-9 h-9 !p-0 rounded-xl flex items-center justify-center border border-slate-700"
+          onClick={() => navigate('/')}
         >
           <ArrowLeft className="w-4 h-4" />
-        </motion.button>
+        </Button>
 
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="text-sm">{world.icon}</span>
-            <h3 className="font-display text-sm font-semibold" style={{ color: world.color }}>
+            <h3 className="font-display text-sm font-bold" style={{ color: world.color }}>
               {mission.title}
             </h3>
             {mission.type === 'boss' && (
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-neon-pink/10 text-neon-pink border border-neon-pink/20">
+              <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-lg bg-coral-pale text-coral border border-coral/20">
                 BOSS
               </span>
             )}
           </div>
-          <p className="text-xs text-text-dim">{world.name}</p>
+          <p className="text-xs text-ink-muted font-display">{world.name}</p>
         </div>
 
         {/* Hint Button */}
         {mission.hints.length > 0 && (
-          <motion.button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={showHint}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/20 text-xs font-mono"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            leftIcon={<Lightbulb className="w-3.5 h-3.5 text-amber-400" />}
+            className="text-xs font-display font-bold border border-slate-700"
           >
-            <Lightbulb className="w-3.5 h-3.5" />
             Hint
-          </motion.button>
+          </Button>
         )}
 
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border">
-          <GitBranch className="w-3.5 h-3.5 text-neon-green" />
-          <span className="text-xs font-mono text-neon-green">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-leaf-pale border-2 border-leaf/20">
+          <GitBranch className="w-3.5 h-3.5 text-leaf" />
+          <span className="text-xs font-mono font-semibold text-leaf">
             {gitEngine.getState().currentBranch || 'main'}
           </span>
         </div>
@@ -195,25 +164,24 @@ export function MissionView() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Side - Terminal + Git Graph */}
+        {/* Left Side - Terminal + Dialogue */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* NPC Dialogue */}
           <DialoguePanel mission={mission} />
 
           {/* Hints */}
           <AnimatePresence>
             {currentHintIndex > 0 && mission.hints.length > 0 && (
               <motion.div
-                className="mx-4 mb-2 p-3 rounded-lg bg-neon-yellow/5 border border-neon-yellow/20"
+                className="mx-4 mb-2 p-3 rounded-xl bg-gold-pale border-2 border-gold/20"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
               >
                 <div className="flex items-start gap-2">
-                  <Lightbulb className="w-4 h-4 text-neon-yellow flex-shrink-0 mt-0.5" />
+                  <Lightbulb className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-semibold text-neon-yellow mb-1">Hint</p>
-                    <p className="text-xs text-text-secondary font-mono">
+                    <p className="text-xs font-display font-bold text-gold mb-1">Hint</p>
+                    <p className="text-xs text-ink-secondary">
                       {mission.hints[Math.min(currentHintIndex - 1, mission.hints.length - 1)]}
                     </p>
                   </div>
@@ -222,19 +190,15 @@ export function MissionView() {
             )}
           </AnimatePresence>
 
-          {/* Terminal */}
           <div className="flex-1 px-4 pb-4">
-            <GameTerminal onCommand={handleCommand} />
+            <GameTerminal onCommand={executeCommand} />
           </div>
         </div>
 
         {/* Right Side - Objectives + Git Graph */}
-        <div className="w-[300px] border-l border-border bg-abyss flex flex-col">
-          <ObjectivesPanel
-            objectives={mission.objectives}
-            completedObjectives={completedObjectives}
-          />
-          <div className="flex-1 border-t border-border">
+        <div className="w-[300px] border-l-2 border-border bg-card flex flex-col shadow-soft">
+          <ObjectivesPanel objectives={mission.objectives} completedObjectives={completedObjectives} />
+          <div className="flex-1 border-t-2 border-border">
             <GitGraphPanel engine={gitEngine} />
           </div>
         </div>

@@ -13,27 +13,22 @@ export function ObjectivesPanel({ objectives, completedObjectives }: ObjectivesP
 
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="flex items-center gap-2 mb-3">
-        <Target className="w-4 h-4 text-neon-cyan" />
-        <h4 className="font-display text-xs font-semibold tracking-wider text-text-primary">
-          OBJECTIVES
-        </h4>
-        <span className="ml-auto text-[10px] font-mono text-text-dim">
+        <Target className="w-4 h-4 text-sky" />
+        <h4 className="font-display text-xs font-bold tracking-wide text-ink">OBJECTIVES</h4>
+        <span className="ml-auto text-[11px] font-display font-semibold text-ink-muted">
           {totalDone}/{objectives.length}
         </span>
       </div>
 
-      {/* Progress Bar */}
-      <div className="h-1.5 bg-deep rounded-full mb-4 overflow-hidden">
+      <div className="h-2 bg-parchment-warm rounded-full mb-4 overflow-hidden border-2 border-border">
         <motion.div
-          className="h-full bg-gradient-to-r from-neon-cyan to-neon-purple rounded-full"
+          className="h-full bg-gradient-to-r from-sky to-magic rounded-full"
           animate={{ width: `${progress}%` }}
           transition={{ type: 'spring', stiffness: 100 }}
         />
       </div>
 
-      {/* Objectives List */}
       <div className="space-y-2">
         {objectives.map((objective, index) => {
           const isComplete = completedObjectives.has(objective.id);
@@ -41,11 +36,10 @@ export function ObjectivesPanel({ objectives, completedObjectives }: ObjectivesP
             <motion.div
               key={objective.id}
               className={`
-                flex items-start gap-2.5 p-2.5 rounded-lg
-                transition-all duration-300
+                flex items-start gap-2.5 p-3 rounded-xl transition-all duration-300
                 ${isComplete
-                  ? 'bg-neon-green/5 border border-neon-green/20'
-                  : 'bg-surface/50 border border-border'
+                  ? 'bg-leaf-pale border-2 border-leaf/25'
+                  : 'bg-card border-2 border-border'
                 }
               `}
               initial={{ x: 20, opacity: 0 }}
@@ -53,24 +47,18 @@ export function ObjectivesPanel({ objectives, completedObjectives }: ObjectivesP
               transition={{ delay: index * 0.1 }}
             >
               {isComplete ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500 }}
-                >
-                  <CheckCircle className="w-4 h-4 text-neon-green flex-shrink-0 mt-0.5" />
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500 }}>
+                  <CheckCircle className="w-4 h-4 text-leaf flex-shrink-0 mt-0.5" />
                 </motion.div>
               ) : (
-                <Circle className="w-4 h-4 text-text-dim flex-shrink-0 mt-0.5" />
+                <Circle className="w-4 h-4 text-ink-faint flex-shrink-0 mt-0.5" />
               )}
               <div>
-                <p className={`text-xs font-medium ${isComplete ? 'text-neon-green line-through' : 'text-text-primary'}`}>
+                <p className={`text-xs font-display font-semibold ${isComplete ? 'text-leaf line-through' : 'text-ink'}`}>
                   {objective.description}
                 </p>
                 {!isComplete && (
-                  <p className="text-[10px] text-text-dim mt-0.5 font-mono">
-                    {objective.hint}
-                  </p>
+                  <p className="text-[11px] text-ink-muted mt-0.5">{objective.hint}</p>
                 )}
               </div>
             </motion.div>

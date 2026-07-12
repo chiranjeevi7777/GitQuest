@@ -35,6 +35,13 @@ interface RepoState {
   stash: StashEntry[];
   head: string | null;
   statusChecked: boolean;
+  rebaseUsed?: boolean;
+  cherryPickUsed?: boolean;
+  reflogUsed?: boolean;
+  resetUsed?: boolean;
+  revertUsed?: boolean;
+  bisectUsed?: boolean;
+  hooksConfigured?: boolean;
 }
 
 function generateHash(): string {
@@ -43,7 +50,7 @@ function generateHash(): string {
 
 export class GitEngine {
   private state: RepoState;
-  private onStateChange?: (state: RepoState) => void;
+  public onStateChange?: (state: RepoState) => void;
 
   constructor(onStateChange?: (state: RepoState) => void) {
     this.state = {
@@ -56,6 +63,13 @@ export class GitEngine {
       stash: [],
       head: null,
       statusChecked: false,
+      rebaseUsed: false,
+      cherryPickUsed: false,
+      reflogUsed: false,
+      resetUsed: false,
+      revertUsed: false,
+      bisectUsed: false,
+      hooksConfigured: false,
     };
     this.onStateChange = onStateChange;
   }
@@ -130,6 +144,18 @@ export class GitEngine {
         return this.gitPull();
       case 'fetch':
         return this.gitFetch();
+      case 'rebase':
+        return this.gitRebase(parts.slice(2));
+      case 'cherry-pick':
+        return this.gitCherryPick(parts.slice(2));
+      case 'reflog':
+        return this.gitReflog();
+      case 'reset':
+        return this.gitReset(parts.slice(2));
+      case 'revert':
+        return this.gitRevert(parts.slice(2));
+      case 'bisect':
+        return this.gitBisect(parts.slice(2));
       default:
         return { output: `git: '${subcmd}' is not a git command. See 'git --help'.`, success: false };
     }
@@ -513,6 +539,98 @@ export class GitEngine {
     return { output: this.state.files.map(f => f.name).join('  '), success: true };
   }
 
+  private gitRebase(args: string[]): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    if (args.length === 0) return { output: 'fatal: specify branch to rebase onto', success: false };
+    const branchName = args[0];
+    this.state.rebaseUsed = true;
+    this.notify();
+    return {
+      output: `First, rewinding head to replay your work on top of it...\nApplying: changes on ${this.state.currentBranch}\nSuccessfully rebased and updated refs/heads/${this.state.currentBranch} onto ${branchName}.`,
+      success: true
+    };
+  }
+
+  private gitCherryPick(args: string[]): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    if (args.length === 0) return { output: 'fatal: specify commit to cherry-pick', success: false };
+    const commitHash = args[0];
+    this.state.cherryPickUsed = true;
+    this.notify();
+    return {
+      output: `[${this.state.currentBranch} ${generateHash()}] Cherry-picked commit ${commitHash}\n 1 file changed, 1 insertion(+)`,
+      success: true
+    };
+  }
+
+  private gitReflog(): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    this.state.reflogUsed = true;
+    this.notify();
+    const hash1 = generateHash();
+    const hash2 = generateHash();
+    return {
+      output: `${hash1} HEAD@{0}: commit: resolve conflict in temple scroll\n${hash2} HEAD@{1}: checkout: moving from main to dev-quest\n${generateHash()} HEAD@{2}: commit: save initial draft`,
+      success: true
+    };
+  }
+
+  private gitReset(args: string[]): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    this.state.resetUsed = true;
+    this.notify();
+    const target = args[0] || 'HEAD~1';
+    return {
+      output: `HEAD is now at ${generateHash()} Reset to ${target}`,
+      success: true
+    };
+  }
+
+  private gitRevert(args: string[]): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    if (args.length === 0) return { output: 'fatal: specify commit to revert', success: false };
+    this.state.revertUsed = true;
+    this.notify();
+    return {
+      output: `[${this.state.currentBranch} ${generateHash()}] Revert "Commit ${args[0]}"\n 1 file changed, 1 deletion(-)`,
+      success: true
+    };
+  }
+
+  private gitBisect(args: string[]): { output: string; success: boolean } {
+    if (!this.state.initialized) return { output: 'fatal: not a git repository', success: false };
+    this.state.bisectUsed = true;
+    this.notify();
+    if (args.length === 0) {
+      return {
+        output: 'git bisect: start, bad, good, reset, visualize, or replay',
+        success: true
+      };
+    }
+    if (args[0] === 'start') {
+      return {
+        output: 'Bisecting: 6 revisions left to test after this (roughly 3 steps)\n[commit-hash] Fix a bug in engine',
+        success: true
+      };
+    }
+    if (args[0] === 'good') {
+      return {
+        output: 'Bisecting: 3 revisions left to test after this (roughly 2 steps)\n[commit-hash] Update files',
+        success: true
+      };
+    }
+    if (args[0] === 'bad') {
+      return {
+        output: '[commit-hash] is the first bad commit\nAuthor: Buggy Coder <buggy@coder.com>',
+        success: true
+      };
+    }
+    return {
+      output: `git bisect: ${args[0]} handled.`,
+      success: true
+    };
+  }
+
   // ─── Validation ───
 
   validate(type: string, params: Record<string, string>): boolean {
@@ -533,9 +651,30 @@ export class GitEngine {
         );
       case 'remote_added':
         return params.remoteName in this.state.remotes;
+      case 'rebase_completed':
+        return !!this.state.rebaseUsed;
+      case 'cherry_picked':
+        return !!this.state.cherryPickUsed;
+      case 'reflog_checked':
+        return !!this.state.reflogUsed;
+      case 'reset_done':
+        return !!this.state.resetUsed;
+      case 'reverted':
+        return !!this.state.revertUsed;
+      case 'bisect_complete':
+        return !!this.state.bisectUsed;
+      case 'hook_configured':
+        return this.state.files.some(f => f.name.includes('hooks/pre-commit') || f.name.includes('pre-commit'));
       case 'custom':
         if (params.type === 'status_checked') return this.state.statusChecked;
         if (params.type === 'stash_used') return this.state.stash.length > 0 || this.state.commits.some(c => c.message.includes('stash'));
+        if (params.type === 'rebase_completed') return !!this.state.rebaseUsed;
+        if (params.type === 'cherry_picked') return !!this.state.cherryPickUsed;
+        if (params.type === 'reflog_checked') return !!this.state.reflogUsed;
+        if (params.type === 'reset_done') return !!this.state.resetUsed;
+        if (params.type === 'reverted') return !!this.state.revertUsed;
+        if (params.type === 'bisect_complete') return !!this.state.bisectUsed;
+        if (params.type === 'hook_configured') return this.state.files.some(f => f.name.includes('hooks/pre-commit') || f.name.includes('pre-commit'));
         return false;
       default:
         return false;
